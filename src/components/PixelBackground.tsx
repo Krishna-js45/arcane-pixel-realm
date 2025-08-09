@@ -8,6 +8,10 @@ interface Particle {
   speedY: number;
   opacity: number;
   color: string;
+  rotation: number;
+  rotationSpeed: number;
+  pulse: number;
+  pulseSpeed: number;
 }
 
 const PixelBackground = () => {
@@ -28,17 +32,22 @@ const PixelBackground = () => {
 
     const createParticles = () => {
       const particles: Particle[] = [];
-      const particleCount = Math.floor((window.innerWidth * window.innerHeight) / 20000);
+      const particleCount = Math.floor((window.innerWidth * window.innerHeight) / 15000);
 
       for (let i = 0; i < particleCount; i++) {
+        const colors = ['#ff0000', '#ff3333', '#ff6666', '#00ff00', '#33ff33', '#0066ff'];
         particles.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          size: Math.random() * 3 + 1,
-          speedX: (Math.random() - 0.5) * 0.5,
-          speedY: (Math.random() - 0.5) * 0.5,
-          opacity: Math.random() * 0.5 + 0.1,
-          color: Math.random() > 0.7 ? '#ff0000' : '#ff4444'
+          size: Math.random() * 4 + 1,
+          speedX: (Math.random() - 0.5) * 1.2,
+          speedY: (Math.random() - 0.5) * 1.2,
+          opacity: Math.random() * 0.6 + 0.2,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: (Math.random() - 0.5) * 0.02,
+          pulse: Math.random() * Math.PI * 2,
+          pulseSpeed: Math.random() * 0.03 + 0.01
         });
       }
       
@@ -49,28 +58,45 @@ const PixelBackground = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particlesRef.current.forEach((particle) => {
-        // Update position
-        particle.x += particle.speedX;
-        particle.y += particle.speedY;
+        // Update position with wave motion
+        particle.x += particle.speedX + Math.sin(Date.now() * 0.001 + particle.pulse) * 0.3;
+        particle.y += particle.speedY + Math.cos(Date.now() * 0.001 + particle.pulse) * 0.3;
+        
+        // Update rotation and pulse
+        particle.rotation += particle.rotationSpeed;
+        particle.pulse += particle.pulseSpeed;
 
         // Wrap around screen
-        if (particle.x < 0) particle.x = canvas.width;
-        if (particle.x > canvas.width) particle.x = 0;
-        if (particle.y < 0) particle.y = canvas.height;
-        if (particle.y > canvas.height) particle.y = 0;
+        if (particle.x < -particle.size) particle.x = canvas.width + particle.size;
+        if (particle.x > canvas.width + particle.size) particle.x = -particle.size;
+        if (particle.y < -particle.size) particle.y = canvas.height + particle.size;
+        if (particle.y > canvas.height + particle.size) particle.y = -particle.size;
 
-        // Draw particle
+        // Calculate dynamic opacity with pulse
+        const pulseOpacity = particle.opacity + Math.sin(particle.pulse) * 0.2;
+
+        // Draw particle with rotation
         ctx.save();
-        ctx.globalAlpha = particle.opacity;
+        ctx.translate(particle.x + particle.size / 2, particle.y + particle.size / 2);
+        ctx.rotate(particle.rotation);
+        ctx.globalAlpha = Math.max(0.1, pulseOpacity);
         ctx.fillStyle = particle.color;
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 15 + Math.sin(particle.pulse) * 5;
         ctx.shadowColor = particle.color;
-        ctx.fillRect(
-          Math.floor(particle.x),
-          Math.floor(particle.y),
-          particle.size,
-          particle.size
-        );
+        
+        // Draw diamond shape for variety
+        if (Math.random() > 0.7) {
+          ctx.beginPath();
+          ctx.moveTo(0, -particle.size / 2);
+          ctx.lineTo(particle.size / 2, 0);
+          ctx.lineTo(0, particle.size / 2);
+          ctx.lineTo(-particle.size / 2, 0);
+          ctx.closePath();
+          ctx.fill();
+        } else {
+          ctx.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
+        }
+        
         ctx.restore();
       });
 

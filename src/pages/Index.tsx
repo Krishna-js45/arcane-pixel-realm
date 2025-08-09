@@ -20,7 +20,7 @@ const Index = () => {
             <div className="space-y-8 animate-pixel-fade">
               <div className="space-y-4">
                 <h1 className="text-6xl md:text-8xl font-pixel text-primary pixel-text-glow animate-float">
-                  PIXELCRAFT<span className="text-accent">V2</span>
+                  PIXELCRAFT
                 </h1>
                 <p className="text-lg md:text-xl font-pixel text-muted-foreground max-w-2xl mx-auto">
                   ENTER THE MODERN PIXEL-ART GAMING PLATFORM WITH CREATIVE & SURVIVAL MODES
